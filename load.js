@@ -1,5 +1,7 @@
 /*********************************
-load Json into AWS Dynamo
+load Json into AWS DynamoDB
+based on the follow blog post: 
+https://calorious.wordpress.com/2016/03/18/episode-4-importing-json-into-dynamodb/
 **********************************/
 
 //package to read json files

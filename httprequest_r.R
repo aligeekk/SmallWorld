@@ -1,0 +1,5 @@
+library(httr)
+library(rjson)
+res <- GET("https://6io70nu9pi.execute-api.us-east-1.amazonaws.com/emilytest_smallworld/neighbors?uni=yh2901&testcaseID=1&node=1")
+res <- content(res, as = "text")
+a <- fromJSON(res)

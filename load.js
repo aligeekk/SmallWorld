@@ -20,13 +20,15 @@ var docClient = new AWS.DynamoDB.DocumentClient();
 //prepared JSON file
 //[{ ... }, { ... }]
 //var fileToLoad = "test.json";
-var fileToLoad = "v2smallworld.json"
+var fileToLoad = "v3smallworld.json"
+//var fileToLoad = "emilytest.json"
 var fileEntries = jsonfile.readFileSync(fileToLoad);
+console.log("fileEntries[index]", fileEntries[0]);
 //utility function to create a single put request
 function getEntry(index) {
-    //console.log("fileEntries[index]", fileEntries[0]);
+    console.log("fileEntries[index]", fileEntries[0]);
     return {
-        TableName: 'friendshipv2',
+        TableName: 'friendshipv3',
         Item: fileEntries[index]
     };
 }

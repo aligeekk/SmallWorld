@@ -12,18 +12,6 @@ to test querying for node neighbors?
     }
   }
 }
-to test submission?
-{
-  "operation": "submit",
-  "tableName": "countersv1",
-  "payload": {
-    "item": {
-      "uni" : "yh2901",
-      "path": "1",
-      "testcaseID" : "1"
-    }
-  }
-}
 */
 
 "use strict";
@@ -32,11 +20,9 @@ var sdk = require('aws-sdk');
 var testcasesKeys = ['test_id', 'start', 'target'];
 var edgesKeys = ['id', 'node1', 'node2'];
 var resultKeys = ['uni', 'test_id', 'path'];
-var countersv1Keys = ['uni', 'testcaseID', 'nOfQueries', 'nOfSubmission', 'path'];
-var countersv1trainKeys = ['entry', 'uni', 'testcaseID', 'nOfQueries', 'nOfSubmission', 'path'];
+var countersKeys = ['uni', 'testcaseID', 'nOfQueries', 'nOfSubmission', 'path'];
 var friendshipv2Keys = ['node', 'friend'];
 var friendshipv3Keys = ['node', 'friend'];
-var testcaseList = ['1' ,'2', '3', '4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30','31','32','33','34','35','36','37','38','39','40'];
 
 function getKeys(tableName) {
     if (tableName === 'testcases') {
@@ -48,25 +34,15 @@ function getKeys(tableName) {
     else if (tableName === 'result') {
         return resultKeys;
     }
-    else if (tableName === 'countersv1') {
-        return countersv1Keys;
+    else if (tableName == 'counters') {
+        return countersKeys;
     }
-    else if (tableName === 'friendshipv2') {
+    else if (tableName == 'friendshipv2') {
         return friendshipv2Keys;
     }
-    else if (tableName === 'friendshipv5') {
+    else if (tableName == 'friendshipv3') {
         return friendshipv3Keys;
-    } 
-}
-function isInList(listname, element) {
-    if (listname === 'testcaseList') {
-        var index = testcaseList.indexOf(element);
-        if (index === -1) {
-            return false;
-        } else {
-            return true;
-        }
-    } 
+    }
 }
 var DBManager = (function () {
     function DBManager(_db) {
@@ -123,8 +99,6 @@ function tryFind(payload, key) {
     }
     else if (payload.values && payload.values[key]) {
         return payload.values[key];
-    } else if (payload.key && payload.key[key]) {
-        return payload.key[key];
     }
     return false;
 }
@@ -133,7 +107,7 @@ function handler(event, context, callback) {
     var db = new DBManager(dynamo);
     var tableName = event.tableName;
     var alreadySubmittedError = {
-        code: "422",
+        code: "submitted",
         message: "already submitted! "
     };
     var missingKeysError = {
@@ -141,12 +115,12 @@ function handler(event, context, callback) {
         message: "Missing 'uni' and/or 'testcaseID"
     };
     var missingNode = {
-        code: "400",
+        code : "400",
         message: "Give me the node please"
     };
     var missingPathError = {
         code: "400",
-        message: "give me your path please"
+        message: "Missing path!"
     };
     var stepExceedsLimitsError = {
         code: "422",
@@ -155,10 +129,6 @@ function handler(event, context, callback) {
     var uniNotAuthorized = {
         code: "404",
         message: "your uni is not authorized for this operation or the testcaseID does not exist!"
-    };
-    var notValidTestcaseError = {
-        code : "404",
-        message: "this testcaseID does not exist"
     };
     switch (event.operation) {
         case 'create':
@@ -170,7 +140,6 @@ function handler(event, context, callback) {
             db.create(tableName, item_1, callback);
             break;
         case 'readFriendship':
-            var testcaseID = tryFind(event.payload, "testcaseID");
             var item2 = event.payload.item;
             console.log(item2);
             var payload2 = {};
@@ -182,8 +151,6 @@ function handler(event, context, callback) {
                 callback(JSON.stringify(missingKeysError));
             } else if (!tryFind(event.payload, "node")) {
                 callback(JSON.stringify(missingNode));
-            } else if (!isInList("testcaseList", testcaseID)) {
-                callback(JSON.stringify(notValidTestcaseError));
             } else {
                 payload2 = {
                     "key": {
@@ -191,21 +158,19 @@ function handler(event, context, callback) {
                         "testcaseID": item2.testcaseID
                     }
                 };
-                console.log("keys: ", payload2);
-                db.read('countersv1', payload2, function (err, res) {
-                    console.log("res: ", res);
+                db.read('counters', payload2, function (err, res) {
                     if (res.Item === undefined) {
                         callback(JSON.stringify(uniNotAuthorized));
                     } else {
                         var times = res.Item.nOfQueries;
-                        if (times >= 500) {
+                        if (times >= 5000) {
                             flag = "Step exceeds limit!";
                             callback(JSON.stringify(stepExceedsLimitsError));
                         } else {
                             //update nOfQueries into counteres 
                             var nOfQueries = parseInt(res.Item.nOfQueries) + 1;
                             res.Item.nOfQueries = nOfQueries;
-                            db.create('countersv1', res.Item, function (err, res) {
+                            db.create('counters', res.Item, function (err, res) {
                                 payload4 = {
                                     "key": {
                                         "node": item2.node
@@ -219,69 +184,55 @@ function handler(event, context, callback) {
             }
             break;
         case 'submit':
-            var testcaseID = tryFind(event.payload, "testcaseID");
-            if (!tryFind(event.payload, "uni")) {
-                console.log("no uni");
+            var item1_1 = {};
+            var payload1_1 = event.payload.item;
+            var flag = null;
+            getKeys(tableName).forEach(function (e) {
+                item1_1[e] = payload1_1[e];
+            });
+            if (item1_1.uni === undefined || item1_1.uni.length === 0 || item1_1.testcaseID === undefined || item1_1.testcaseID.length === 0) {
                 callback(JSON.stringify(missingKeysError));
-            } else if (!tryFind(event.payload, "testcaseID")) {
-                console.log("no testcase");
-                callback(JSON.stringify(missingKeysError));
-            } else if (!tryFind(event.payload, "path")) {
+            } else if (item1_1.path === undefined) {
                 callback(JSON.stringify(missingPathError));
-            } else if (!isInList("testcaseList", testcaseID)) {
-                callback(JSON.stringify(notValidTestcaseError));
-            } else {
-                var item1_1 = {};
-                var payload1_1 = event.payload.item;
-                var flag = null;
-                getKeys(tableName).forEach(function (e) {
-                    item1_1[e] = payload1_1[e];
-                });
-                //check number of submission! 
-                var payload1 = {};
-
-                payload1 = {
-                    "key": {
-                        "uni": item1_1.uni,
-                        "testcaseID": item1_1.testcaseID
-                    }
-                };
-
-                db.read('countersv1', payload1, function (err, res) {
-                    if (res) {
-                        var times = res.Item.nOfSubmission;
-                        console.log("I see times within res", times);
-                        if (times === 1) {
-                            flag = "already submitted!";
-                            callback(JSON.stringify(alreadySubmittedError));
-
-                        } else {
-                            //create this submisison into counteres 
-                            console.log("not submitted yet!");
-                            res.Item.nOfSubmission = 1;
-                            res.Item.path = item1_1.path;
-                            db.create(tableName, res.Item, callback);
-                            var output;
-                            output = {
-                                code: "submisionAccepted",
-                                uni: res.Item.uni,
-                                testcaseID: res.Item.testcaseID,
-                                path: res.Item.path
-                            };
-                            callback(JSON.stringify(output));
-
-                        }
-                    }
-                });
             }
+            //check number of submission! 
+            var payload1 = {};
+
+            payload1 = {
+                "key": {
+                    "uni": item1_1.uni,
+                    "testcaseID": item1_1.testcaseID
+                }
+            };
+
+            db.read('counters', payload1, function (err, res) {
+                if (res) {
+                    var times = res.Item.nOfSubmission;
+                    console.log("I see times within res", times);
+                    if (times !== 0) {
+                        flag = "already submitted!";
+                        callback(JSON.stringify(alreadySubmittedError));
+
+                    } else {
+                        //create this submisison into counteres 
+                        res.Item.nOfSubmission = 1;
+                        res.Item.path = item1_1.path;
+                        db.create(tableName, res.Item, callback);
+                        var output;
+                        output = {
+                            code: "submisionAccepted",
+                            uni: res.Item.uni,
+                            testcaseID: res.Item.testcaseID,
+                            path: res.Item.path
+                        };
+                        callback(JSON.stringify(output));
+
+                    }
+                }
+            });
             break;
         case 'read':
-            var testcaseID = tryFind(event.payload, "testcaseID");
-            if (!isInList("testcaseList", testcaseID)){
-                callback(JSON.stringify(notValidTestcaseError));
-            } else {
-                db.read(tableName, event.payload, callback);
-            }
+            db.read(tableName, event.payload, callback);
             break;
         case 'update':
             db.update(tableName, event.payload, callback);

@@ -1,5 +1,5 @@
-####  use AWS Lambda to create a serverless RESTful API for hosting the data challenge 
-
+####  use AWS Lambda and AWS DynamoDB to create a serverless RESTful API for hosting the data challenge 
+Teaching Asistant work for 2016 Social Networks
 
 ##### important files:
  	

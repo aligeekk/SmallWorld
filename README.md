@@ -3,7 +3,7 @@ Teaching Asistant work for 2016 Social Networks
 
 ##### important files:
  	
- load.js: load dataset into AWS Dynamo db     
+ load.js: load dataset(~5 million nodes)into AWS Dynamo db using Nodesdk   
  smallworldlambdav2.js: AWS lambda function version 2  
  smallworldlambdav3.js: AWS lambda function version 3, clean up error code and return sensible error message when missing uni and testcaseID  
  transform_dataset-v1.py: data transformation  

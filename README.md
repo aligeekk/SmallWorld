@@ -11,6 +11,7 @@ Teaching Asistant work for 2016 Social Networks
  v3smallworld.json:  updated source file  \"21693\" to take care of "    
  httpRequestDemo.ipynb: a python http request demo for students  
  httprequest_r.R:	R http request example 
- postcall: demo for API call for vscode RestClient 
- oct20introtoDC.pptx: short presentation of this data challenge 
+ postcall: demo for API call for vscode RestClient   
+ oct20introtoDC.pptx: short presentation of this data challenge   
+ 2016DataChallenge1.pdf: detailed instructions for students
 

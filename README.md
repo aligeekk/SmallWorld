@@ -8,7 +8,7 @@ Develop efficient path finding algorithms with minimum cost using social network
 ###  Architecture
 use AWS Lambda and AWS DynamoDB to create a serverless RESTful API (that handles queries and response of graph query). 
 
-##### important files:
+### important files:
  	
  load.js: load dataset(~5 million nodes)into AWS Dynamo db using Nodesdk     
  

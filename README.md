@@ -1,5 +1,8 @@
 ### Serverless RESTful API  
 
+### Goal of this data challenge:
+Develop efficient path finding algorithms with minimum cost using social network properties taught in class. 
+
 ####  use AWS Lambda and AWS DynamoDB to create a serverless RESTful API for hosting 2016 social network data challenge 
 Teaching Asistant work for 2016 Social Networks
 

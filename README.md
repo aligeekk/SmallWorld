@@ -1,4 +1,4 @@
-### 2016-Columbia-SocialNetworks Data Challenge Backend
+## 2016 Columbia Univeristy Social Networks Data Challenge Backend
 
 ### Goal of this data challenge:
 Develop efficient path finding algorithms with minimum cost using social network properties taught in class. 

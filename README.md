@@ -3,7 +3,7 @@
 ### Goal of this data challenge:
 Develop efficient path finding algorithms with minimum cost using social network properties taught in class. 
 
-*This is the repository for teach assistants of 2016-Columbia-SocialNetworks course
+*This is the repository for teaching assistants.
 
 ###  Architecture
 use AWS Lambda and AWS DynamoDB to create a serverless RESTful API (that handles queries and response of graph query). 
